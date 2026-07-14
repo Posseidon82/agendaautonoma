@@ -39,3 +39,71 @@ API para profissionais autônomos gerenciarem sua agenda de atendimentos. Client
    ```bash
    git clone https://github.com/seu-usuario/agenda-autonoma.git
    cd agenda-autonoma
+2. **Compile o projeto e execute os testes (opcional)**
+   ```bash
+   mvn clean verify
+3. **Inicie a aplicação**
+   ```bash
+   mvn spring-boot:run
+   ```
+   A aplicação sobe na porta 8080 com banco H2 em memória.
+   Dois usuários de teste são criados automaticamente (veja credenciais abaixo).
+   
+4. **Acesse a documentação interativa da API**
+   * Swagger UI: http://localhost:8080/swagger-ui.html
+   * Console H2: http://localhost:8080/h2-console
+     JDBC URL: jdbc:h2:mem:agendaautonoma
+     Usuário: sa | Senha: (deixe em branco)
+
+### Credenciais Iniciais (para testes)
+   | Papel | E-mail | Senha |
+   |-------|--------|-------|
+   | Profissional | prof@email.com | 123456 |
+   | Cliente | cliente@email.com | 123456 |
+
+### Configuração para PostgreSQL (Produção)
+
+   Caso queira utilizar PostgreSQL, edite src/main/resources/application.properties:
+   ```bash
+   spring.datasource.url=jdbc:postgresql://localhost:5432/agenda
+   spring.datasource.username=postgres
+   spring.datasource.password=sua_senha
+   spring.jpa.hibernate.ddl-auto=update
+   ```
+   E descomente a dependência do PostgreSQL no ``pom.xml`` (ou adicione):
+
+   ```bash
+   <dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <scope>runtime</scope>
+   </dependency>
+   ```
+
+   Crie o banco ``agenda`` antes de iniciar.
+
+---
+
+## 🧪 Como Rodar os Testes
+
+### Testes Unitários
+
+Executam validações de regras de negócio (cálculo de slots, conflitos, etc.) de forma isolada:
+```bash
+mvn test
+```
+
+### Testes de Integração
+
+Verificam endpoints, interações com banco de dados e fluxos completos:
+```bash
+mvn verify -DskipTests=false
+```
+
+### Relatório de Cobertura (Jacoco)
+
+Gere o relatório de cobertura de testes:
+```bash
+mvn clean test jacoco:report
+```
+O relatório estará disponível em ``target/site/jacoco/index.html``.
