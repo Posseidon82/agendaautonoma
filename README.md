@@ -47,7 +47,7 @@ API para profissionais autônomos gerenciarem sua agenda de atendimentos. Client
 
 1. **Clone o repositório**
    ```bash
-   git clone https://github.com/seu-usuario/agenda-autonoma.git
+   git clone https://github.com/Posseidon82/agendaautonoma.git
    cd agenda-autonoma
 2. **Compile o projeto e execute os testes (opcional)**
    ```bash
