@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SlotService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">agenda-autonoma</a> &gt; <a href="index.source.html" class="el_package">com.agendaautonoma.application</a> &gt; <span class="el_source">SlotService.java</span></div><h1>SlotService.java</h1><pre class="source lang-java linenums">package com.agendaautonoma.application;
+
+import com.agendaautonoma.domain.Agendamento;
+import com.agendaautonoma.domain.Usuario;
+import com.agendaautonoma.domain.enums.StatusAgendamento;
+import com.agendaautonoma.interfaces.dto.SlotDisponivel;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+<span class="fc" id="L18">public class SlotService {</span>
+
+    /**
+     * Calcula os slots disponíveis para um profissional em uma determinada data.
+     * Considera os dias de trabalho, horário de expediente, duração padrão
+     * e remove os horários já ocupados por agendamentos confirmados.
+     */
+    public List&lt;SlotDisponivel&gt; calcularSlots(Usuario profissional, LocalDate data,
+                                              List&lt;Agendamento&gt; ocupados) {
+<span class="fc" id="L27">        List&lt;SlotDisponivel&gt; slots = new ArrayList&lt;&gt;();</span>
+
+        // 1. Verificar se o profissional atende na data (dia da semana)
+<span class="pc bpc" id="L30" title="5 of 7 branches missed.">        String diaSemana = switch (data.getDayOfWeek()) {</span>
+<span class="nc" id="L31">            case MONDAY -&gt; &quot;SEG&quot;;</span>
+<span class="nc" id="L32">            case TUESDAY -&gt; &quot;TER&quot;;</span>
+<span class="fc" id="L33">            case WEDNESDAY -&gt; &quot;QUA&quot;;</span>
+<span class="nc" id="L34">            case THURSDAY -&gt; &quot;QUI&quot;;</span>
+<span class="nc" id="L35">            case FRIDAY -&gt; &quot;SEX&quot;;</span>
+<span class="nc" id="L36">            case SATURDAY -&gt; &quot;SAB&quot;;</span>
+<span class="fc" id="L37">            case SUNDAY -&gt; &quot;DOM&quot;;</span>
+        };
+
+<span class="fc" id="L40">        Set&lt;String&gt; diasTrabalho = Set.of(profissional.getDiasTrabalho().split(&quot;,&quot;));</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (!diasTrabalho.contains(diaSemana)) {</span>
+<span class="fc" id="L42">            return slots; // nenhum slot</span>
+        }
+
+        // 2. Gerar todos os slots possíveis dentro do expediente
+<span class="fc" id="L46">        LocalTime inicio = profissional.getInicioTrabalho();</span>
+<span class="fc" id="L47">        LocalTime fim = profissional.getFimTrabalho();</span>
+<span class="fc" id="L48">        int duracao = profissional.getDuracaoPadraoMinutos();</span>
+
+<span class="fc" id="L50">        LocalTime current = inicio;</span>
+<span class="fc bfc" id="L51" title="All 4 branches covered.">        while (current.plusMinutes(duracao).isBefore(fim) || current.plusMinutes(duracao).equals(fim)) {</span>
+<span class="fc" id="L52">            LocalTime slotInicio = current;</span>
+<span class="fc" id="L53">            LocalTime slotFim = current.plusMinutes(duracao);</span>
+<span class="fc" id="L54">            slots.add(new SlotDisponivel(slotInicio, slotFim));</span>
+<span class="fc" id="L55">            current = slotFim;</span>
+<span class="fc" id="L56">        }</span>
+
+        // 3. Remover slots ocupados por agendamentos confirmados
+<span class="fc" id="L59">        List&lt;SlotDisponivel&gt; ocupadosList = ocupados.stream()</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">                .filter(a -&gt; a.getStatus() == StatusAgendamento.CONFIRMADO)</span>
+<span class="fc" id="L61">                .map(a -&gt; new SlotDisponivel(a.getHoraInicio(), a.getHoraFim()))</span>
+<span class="fc" id="L62">                .collect(Collectors.toList());</span>
+
+<span class="fc" id="L64">        slots.removeAll(ocupadosList);</span>
+
+<span class="fc" id="L66">        return slots;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

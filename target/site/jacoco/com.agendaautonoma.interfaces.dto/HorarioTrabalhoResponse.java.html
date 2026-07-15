@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HorarioTrabalhoResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">agenda-autonoma</a> &gt; <a href="index.source.html" class="el_package">com.agendaautonoma.interfaces.dto</a> &gt; <span class="el_source">HorarioTrabalhoResponse.java</span></div><h1>HorarioTrabalhoResponse.java</h1><pre class="source lang-java linenums">package com.agendaautonoma.interfaces.dto;
+
+import com.agendaautonoma.domain.Usuario;
+import lombok.Data;
+
+import java.time.LocalTime;
+
+@Data
+public class HorarioTrabalhoResponse {
+    private String diasTrabalho;
+    private LocalTime inicioTrabalho;
+    private LocalTime fimTrabalho;
+    private Integer duracaoPadraoMinutos;
+
+<span class="nc" id="L15">    public HorarioTrabalhoResponse(Usuario usuario) {</span>
+<span class="nc" id="L16">        this.diasTrabalho = usuario.getDiasTrabalho();</span>
+<span class="nc" id="L17">        this.inicioTrabalho = usuario.getInicioTrabalho();</span>
+<span class="nc" id="L18">        this.fimTrabalho = usuario.getFimTrabalho();</span>
+<span class="nc" id="L19">        this.duracaoPadraoMinutos = usuario.getDuracaoPadraoMinutos();</span>
+<span class="nc" id="L20">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

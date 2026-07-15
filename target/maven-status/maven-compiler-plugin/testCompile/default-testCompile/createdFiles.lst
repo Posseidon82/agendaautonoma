@@ -1,0 +1,3 @@
+com\agendaautonoma\interfaces\controllers\AgendamentoControllerIntegrationTest.class
+com\agendaautonoma\application\SlotServiceTest.class
+com\agendaautonoma\application\ConflitoValidatorTest.class

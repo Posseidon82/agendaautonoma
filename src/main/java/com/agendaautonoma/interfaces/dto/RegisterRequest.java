@@ -1,0 +1,17 @@
+package com.agendaautonoma.interfaces.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
+public class RegisterRequest {
+    @NotBlank
+    private String nome;
+    @NotBlank @Email
+    private String email;
+    @NotBlank
+    private String senha;
+    @NotBlank
+    private String papel; // "PROFISSIONAL" ou "CLIENTE"
+}

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AgendamentoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">agenda-autonoma</a> &gt; <a href="index.source.html" class="el_package">com.agendaautonoma.application</a> &gt; <span class="el_source">AgendamentoService.java</span></div><h1>AgendamentoService.java</h1><pre class="source lang-java linenums">package com.agendaautonoma.application;
+
+import com.agendaautonoma.domain.Agendamento;
+import com.agendaautonoma.domain.Usuario;
+import com.agendaautonoma.domain.enums.StatusAgendamento;
+import com.agendaautonoma.domain.enums.TipoNotificacao;
+import com.agendaautonoma.infrastructure.persistence.AgendamentoRepository;
+import com.agendaautonoma.interfaces.dto.AgendamentoRequest;
+import com.agendaautonoma.interfaces.dto.ReagendamentoRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class AgendamentoService {
+
+    private final AgendamentoRepository agendamentoRepository;
+    private final UsuarioService usuarioService;
+    private final ConflitoValidator conflitoValidator;
+    private final NotificacaoService notificacaoService;
+
+    @Transactional
+    public Agendamento criarAgendamento(AgendamentoRequest request) {
+<span class="nc" id="L28">        Usuario profissional = usuarioService.buscarPorId(request.getProfissionalId());</span>
+<span class="nc" id="L29">        Usuario cliente = usuarioService.getUsuarioLogado();</span>
+
+        // Calcular hora fim baseado na duração do profissional
+<span class="nc" id="L32">        var horaFim = request.getHoraInicio()</span>
+<span class="nc" id="L33">                .plusMinutes(profissional.getDuracaoPadraoMinutos());</span>
+
+        // Validar conflito
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        if (conflitoValidator.existeConflito(profissional.getId(), request.getData(),</span>
+<span class="nc" id="L37">                request.getHoraInicio(), horaFim)) {</span>
+<span class="nc" id="L38">            throw new RuntimeException(&quot;Horário indisponível&quot;);</span>
+        }
+
+<span class="nc" id="L41">        Agendamento agendamento = Agendamento.builder()</span>
+<span class="nc" id="L42">                .profissionalId(profissional.getId())</span>
+<span class="nc" id="L43">                .clienteId(cliente.getId())</span>
+<span class="nc" id="L44">                .clienteNome(cliente.getNome())</span>
+<span class="nc" id="L45">                .clienteEmail(cliente.getEmail())</span>
+<span class="nc" id="L46">                .data(request.getData())</span>
+<span class="nc" id="L47">                .horaInicio(request.getHoraInicio())</span>
+<span class="nc" id="L48">                .horaFim(horaFim)</span>
+<span class="nc" id="L49">                .status(StatusAgendamento.CONFIRMADO)</span>
+<span class="nc" id="L50">                .build();</span>
+
+<span class="nc" id="L52">        Agendamento salvo = agendamentoRepository.save(agendamento);</span>
+
+        // Gerar notificação de confirmação
+<span class="nc" id="L55">        notificacaoService.criarNotificacao(salvo, TipoNotificacao.CONFIRMACAO);</span>
+
+<span class="nc" id="L57">        return salvo;</span>
+    }
+
+    @Transactional
+    public void cancelarAgendamento(Long id, Long usuarioId) {
+<span class="nc" id="L62">        Agendamento agendamento = agendamentoRepository.findById(id)</span>
+<span class="nc" id="L63">                .orElseThrow(() -&gt; new RuntimeException(&quot;Agendamento não encontrado&quot;));</span>
+
+<span class="nc" id="L65">        Usuario usuario = usuarioService.buscarPorId(usuarioId);</span>
+
+        // Verificar permissão: só o cliente ou o profissional podem cancelar
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        if (!usuario.getId().equals(agendamento.getClienteId()) &amp;&amp;</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">                !usuario.getId().equals(agendamento.getProfissionalId())) {</span>
+<span class="nc" id="L70">            throw new RuntimeException(&quot;Usuário não autorizado a cancelar este agendamento&quot;);</span>
+        }
+
+<span class="nc" id="L73">        agendamento.setStatus(StatusAgendamento.CANCELADO);</span>
+<span class="nc" id="L74">        agendamentoRepository.save(agendamento);</span>
+
+        // Gerar notificação de cancelamento
+<span class="nc" id="L77">        notificacaoService.criarNotificacao(agendamento, TipoNotificacao.CANCELAMENTO);</span>
+<span class="nc" id="L78">    }</span>
+
+    @Transactional
+    public Agendamento reagendar(Long id, ReagendamentoRequest request, Long usuarioId) {
+<span class="nc" id="L82">        Agendamento agendamento = agendamentoRepository.findById(id)</span>
+<span class="nc" id="L83">                .orElseThrow(() -&gt; new RuntimeException(&quot;Agendamento não encontrado&quot;));</span>
+
+<span class="nc" id="L85">        Usuario usuario = usuarioService.buscarPorId(usuarioId);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (!usuario.getId().equals(agendamento.getClienteId())) {</span>
+<span class="nc" id="L87">            throw new RuntimeException(&quot;Apenas o cliente pode reagendar&quot;);</span>
+        }
+
+<span class="nc" id="L90">        Usuario profissional = usuarioService.buscarPorId(agendamento.getProfissionalId());</span>
+
+        // Calcular novo horário fim
+<span class="nc" id="L93">        var novaHoraFim = request.getNovaHoraInicio()</span>
+<span class="nc" id="L94">                .plusMinutes(profissional.getDuracaoPadraoMinutos());</span>
+
+        // Validar conflito no novo horário
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (conflitoValidator.existeConflito(profissional.getId(), request.getNovaData(),</span>
+<span class="nc" id="L98">                request.getNovaHoraInicio(), novaHoraFim)) {</span>
+<span class="nc" id="L99">            throw new RuntimeException(&quot;Horário indisponível para reagendamento&quot;);</span>
+        }
+
+<span class="nc" id="L102">        agendamento.setData(request.getNovaData());</span>
+<span class="nc" id="L103">        agendamento.setHoraInicio(request.getNovaHoraInicio());</span>
+<span class="nc" id="L104">        agendamento.setHoraFim(novaHoraFim);</span>
+<span class="nc" id="L105">        agendamento.setStatus(StatusAgendamento.CONFIRMADO);</span>
+<span class="nc" id="L106">        agendamento.setAtualizadoEm(LocalDateTime.now());</span>
+
+<span class="nc" id="L108">        return agendamentoRepository.save(agendamento);</span>
+    }
+
+    public List&lt;Agendamento&gt; listarMeusAgendamentos(Long clienteId) {
+<span class="nc" id="L112">        return agendamentoRepository.findByClienteId(clienteId);</span>
+    }
+
+    public List&lt;Agendamento&gt; listarAgendamentosRecebidos(Long profissionalId) {
+<span class="nc" id="L116">        return agendamentoRepository.findByProfissionalId(profissionalId);</span>
+    }
+
+    public Agendamento buscarPorId(Long id) {
+<span class="nc" id="L120">        return agendamentoRepository.findById(id)</span>
+<span class="nc" id="L121">                .orElseThrow(() -&gt; new RuntimeException(&quot;Agendamento não encontrado&quot;));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
