@@ -20,13 +20,13 @@ API para profissionais autônomos gerenciarem sua agenda de atendimentos. Client
 
 | Tecnologia | Versão | Finalidade |
 |------------|--------|------------|
-| Java | 17 | Linguagem principal |
+| Java | 21 | Linguagem principal |
 | Spring Boot | 3.2.1 | Framework principal (Web, Data JPA, Security, Mail, Validation) |
 | Spring Security | 6.2.1 | Autenticação e autorização com JWT |
 | JWT (jjwt) | 0.11.5 | Tokens de autenticação |
 | H2 Database | 2.2.224 | Banco em memória para desenvolvimento |
 | PostgreSQL | (opcional) | Banco para produção |
-| Lombok | 1.18.30 | Redução de boilerplate |
+| Lombok | 1.18.34 | Redução de boilerplate |
 | Maven | 3.8+ | Gerenciamento de dependências e build |
 | JUnit 5 | 5.10.1 | Testes unitários |
 | Mockito | 5.7.0 | Mocks para testes |
@@ -39,7 +39,7 @@ API para profissionais autônomos gerenciarem sua agenda de atendimentos. Client
 
 ### Pré-requisitos
 
-- JDK 17 ou superior
+- JDK 21
 - Maven 3.8+
 - (Opcional) Docker e Docker Compose para rodar PostgreSQL
 
@@ -60,7 +60,7 @@ API para profissionais autônomos gerenciarem sua agenda de atendimentos. Client
    Dois usuários de teste são criados automaticamente (veja credenciais abaixo).
    
 4. **Acesse a documentação interativa da API**
-   * Swagger UI: <http://localhost:8080/swagger-ui.html>
+   * Swagger UI: <http://localhost:8080/swagger-ui/index.html>
    * Console H2: <http://localhost:8080/h2-console>
    * JDBC URL: jdbc:h2:mem:agendaautonoma
    * Usuário: sa | Senha: (deixe em branco)
@@ -117,6 +117,40 @@ Gere o relatório de cobertura de testes:
 mvn clean test jacoco:report
 ```
 O relatório estará disponível em ``target/site/jacoco/index.html``.
+
+### Exemplos de Requisições via cURL
+
+Registrar usuário
+
+```bash
+curl -X POST http://localhost:8080/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Novo Cliente","email":"cliente2@email.com","senha":"123456","papel":"CLIENTE"}'
+```
+
+Login (obter JWT)
+
+```bash
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"cliente@email.com","senha":"123456"}'
+```
+
+Consultar slots disponíveis
+
+```bash
+curl -X GET "http://localhost:8080/profissionais/1/slots?data=2026-07-15" \
+  -H "Authorization: Bearer SEU_TOKEN"
+```
+
+Criar agendamento
+
+```bash
+curl -X POST http://localhost:8080/agendamentos \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -d '{"profissionalId":1,"data":"2026-07-15","horaInicio":"14:00"}'
+```
 
 ---
 
@@ -253,4 +287,4 @@ Este projeto está sob a licença MIT. Consulte o arquivo LICENSE para mais info
 
 ## 📧 Contato
 
-Em caso de dúvidas, entre em contato pelo e-mail: agendaautonoma@hotmail.com
+Em caso de dúvidas, entre em contato pelo e-mail: paulo_elb@hotmail.com
